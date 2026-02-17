@@ -11,6 +11,7 @@
 \usepackage{xcolor}
 \usepackage{comment}
 \usepackage{tikz}
+
 \usetikzlibrary{positioning, arrows.meta, fit, backgrounds, calc, shapes.geometric, decorations.pathmorphing}
 %\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
 %    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -331,14 +332,14 @@
 \begin{document}
 %
 
-\title{Our title }
+\title{SignalTrack: A Modular Experimental Platform for Distributed and Mobile SDR Systems }
 
 
 % author names and affiliations
 % use a multiple column layout for up to three different
 % affiliations
-\author{\IEEEauthorblockN{First Author and next author\\ and next author}
-\IEEEauthorblockA{Science Club Spektrum, Poznan Univeristy of Technology\\
+\author{\IEEEauthorblockN{Marta Sieradzka, Bartosz Berezowski, Adam Michalak, Piotr Woźniak, Krzysztof Cichoń}
+\IEEEauthorblockA{Science Club Spektrum, Poznan University of Technology\\
 Polanka 3 Str, 60-965\\
 Poznan, Poland\\
 Email: krzysztof.cichon@put.poznan.pl}
@@ -355,36 +356,48 @@ Email: krzysztof.cichon@put.poznan.pl}
 }
 
 % make the title area
-\maketitle
+\maketitle 
 
 % As a general rule, do not put math, special symbols or citations
 % in the abstract
 \begin{abstract}
-The abstract goes here.
+This paper presents SignalTrack, a modular experimental platform for distributed and mobile wireless systems based on software-defined radio (SDR). The platform combines multiple SDR-equipped mobile units with a centralized controller responsible for coordination, synchronization, and experiment orchestration \cite{MQTTv5}. A message-based publish–subscribe communication model enables dynamic configuration, scalable integration of nodes, and algorithm-agnostic operation. The proposed architecture is designed to support experiments in distributed beamforming, adaptive transmission, and integrated sensing and communication scenarios under realistic conditions.
 \end{abstract}
 
-% no keywords
 \IEEEpeerreviewmaketitle
 
 
 
 \section{Introduction}
 
-The development of advanced wireless systems has increased interest in platforms based on software-defined radio (SDR), which enables flexible implementation of communication and sensing functions. By defining radio behavior primarily in software, SDR supports the evaluation of algorithms requiring programmable signal generation, adaptive signal processing chains, and runtime modification of system functionality during operation. This approach is relevant to distributed MIMO systems, adaptive beamforming, integrated sensing and communications (ISAC), and cooperative autonomous systems, where fixed hardware configurations impose significant limitations. \\
-Conventional multi-antenna and multi-node experimental platforms are often limited by fixed geometries, limited scalability, and static node roles. Such limitations hinder the evaluation of algorithms that depend on spatial adaptation, dynamic configuration, or context-dependent operation, which are common in vehicular communications and distributed sensing scenarios. \\
-To overcome these limitations, this work presents a mobile, modular, and centrally coordinated radio platform composed of multiple autonomous ground units operating as cooperative transmitters. Each unit integrates motion control, onboard computation, and an SDR frontend, enabling coordinated interaction between node positioning and radio operation. System coordination is performed by a centralized controller using a publish–subscribe communication model that maintains awareness of connected devices and synchronizes their operation.\\
-The system architecture separates mobility control from radio processing and coordination. Motion is handled by embedded controllers, while waveform generation and algorithm execution are assigned to higher-performance computing units. This structure allows the same hardware platform to support multiple operational modes, including distributed beamforming, cooperative sensing, radio-based obstacle detection, and adaptive MIMO transmission, with mode changes performed at runtime.\\
-The mobility of the radio nodes introduces an additional degree of freedom absent in conventional platforms. By actively controlling the spatial arrangement of transmitters and receivers, the system enables experimental investigation of directional energy focusing, environment-aware transmission, and spatial optimization strategies. Such capabilities are particularly relevant for studying scenarios where the propagation environment, target location, or interference conditions are not static. From an energy-efficiency perspective, spatial reconfiguration combined with adaptive signal processing allows the system to concentrate radiated power toward regions of interest, potentially reducing overall transmission energy while maintaining performance. \\
-The proposed platform is designed as a general research framework rather than a solution tailored to a specific application. Its modular structure and algorithm-agnostic operation allow it to support a broad range of studies in wireless communication and sensing. The system can be applied to investigations related to autonomous vehicular systems, cooperative robotics, and distributed radar-like sensing.\\
-In summary, the presented system enables the study of distributed and mobile wireless systems by combining programmable radio operation with controlled node mobility and centralized coordination. It provides a basis for investigating communication and sensing methods in dynamic and spatially adaptive scenarios.
+The rapid development of advanced wireless communication and sensing systems has increased interest in experimental platforms based on software-defined radio (SDR). By implementing radio functionality primarily in software, SDR enables flexible prototyping and evaluation of adaptive transmission, beamforming, and integrated sensing and communication (ISAC) techniques under realistic conditions~\cite{Mitola1993SDR,Ulversoy2010SDR}. 
 
+
+Many emerging applications, including distributed MIMO systems, cooperative mobile nodes, and environment-aware wireless sensing\cite{Hassanien2016DFRC,Sahin2025PARC}, require experimental setups that support dynamic reconfiguration, spatial adaptability, and coordinated operation of multiple radio units\cite{Goldsmith2003MIMO,Heath2016mmWave,Liu2020ISAC}. In such scenarios, the spatial relationship between transmitters and receivers, as well as their mobility, plays a critical role in overall system performance\cite{AlHourani2014LAP}. However, conventional SDR-based testbeds are typically designed for static deployments with predefined node roles and limited runtime reconfigurability, which constrains their usefulness for evaluating distributed and mobile wireless systems\cite{Ulversoy2010SDR,Tan2015Sora}.
+
+In recent years, there has been a growing interest in platforms that combine centralized coordination with distributed radio nodes, allowing global optimization while preserving the local autonomy of individual units\cite{Hassanien2016DFRC,Liu2020ISAC}. Centralized controllers can aggregate measurement data, execute computationally intensive algorithms, and coordinate transmission strategies across multiple nodes, while distributed radio units focus on real-time signal transmission, reception, and low-level control.
+
+To address these requirements, this work presents SignalTrack, a modular and centrally coordinated experimental platform for distributed and mobile wireless systems. The platform integrates multiple SDR-equipped mobile units with a centralized controller responsible for synchronization, coordination, and experiment orchestration. Communication between system components is realized using a message-based publish–subscribe model, enabling flexible runtime reconfiguration and scalable integration of heterogeneous nodes.
+
+The proposed architecture decouples radio operation, control logic, and experiment execution, allowing algorithm-agnostic operation and seamless switching between different experimental scenarios. As a result, the same platform can be used to investigate distributed beamforming, adaptive transmission strategies, cooperative sensing, and mobility-aware wireless experiments without structural modifications of the system.
+
+The remainder of this paper is the following. In Section~\ref{sec:unit_architecture}, the hardware architecture of the mobile unit is described, while in the following Section, the system-level communication and control framework, and representative experimental scenarios that demonstrate the flexibility and extensibility of the proposed platform are described. In Section~\ref{sec:integration}, the integration of the system with mobile units is given, and the conclusions are drawn in Section~\ref{sec:conclusions}.  
 
 \section{Mobile Unit Hardware Architecture}
 \label{sec:unit_architecture}
 
-Each mobile unit is built as a compact autonomous ground robot that integrates a drivetrain, embedded control electronics, an onboard computing platform, and a software-defined radio (SDR) front-end. The hardware architecture follows a layered design principle, in which each subsystem operates at a level of abstraction appropriate to its real-time requirements and computational complexity. Fig.~\ref{fig:unit_hw} presents a block diagram of a single mobile unit.
 
-\begin{figure}[t]
+Each mobile unit is built as a compact, autonomous ground robot that integrates a drivetrain, embedded control electronics, an onboard computing platform, and a software-defined radio (SDR) front-end. Although each unit operates autonomously at the execution level, high-level coordination and decision-making are performed by the centralized system controller. The hardware architecture follows a layered design principle in which each subsystem operates at a level of abstraction appropriate to its real-time requirements and computational complexity. In Fig.~\ref{fig:unit_hw}, a block diagram of a single mobile unit is shown.
+
+% \begin{figure}[!h] 
+% \centering 
+% \includegraphics[width=\linewidth]{message_UML.png} 
+
+% \caption{Example of the mesage between components}
+% \label{fig:set_arch}
+% \end{figure} 
+
+\begin{figure}[h]
 \centering
 \begin{tikzpicture}[
     node distance=0.55cm and 0.8cm,
@@ -427,131 +440,141 @@ Each mobile unit is built as a compact autonomous ground robot that integrates a
   \node[draw=green!60!black, dashed, thick, rounded corners, fit=(usrp)(ant), inner sep=4pt, label={[font=\scriptsize, green!60!black]right:Radio Layer}] {};
 \end{scope}
 \end{tikzpicture}
-\caption{Block diagram of a single mobile unit showing the three functional layers: mobility, compute, and radio.}
+\caption{Block diagram of a single mobile unit showing the three functional layers: mobility, compute, and radio. .
+}
 \label{fig:unit_hw}
 \end{figure}
 
 \subsection{Mobility Layer}
-The drivetrain consists of two DC motors arranged in a differential-drive configuration, each connected to an H-bridge motor driver module. The H-bridge provides bidirectional control of motor current and allows pulse-width modulation (PWM)-based speed regulation. Both H-bridge channels are driven by an ESP32 microcontroller, which serves as the low-level mobility controller.
+The drivetrain consists of two DC motors arranged in a differential-drive configuration, each connected to an H-bridge motor driver module. The H-bridge provides bidirectional control of motor current and allows pulse-width modulation (PWM) based speed regulation. Both H-bridge channels are driven by an ESP32 microcontroller, which serves as the low-level mobility controller.
 
-The ESP32 executes a real-time control loop that processes PWM commands, reads wheel encoder feedback, and acquires data from an onboard inertial measurement unit (IMU). These sensor inputs enable closed-loop velocity control and odometry estimation at the firmware level. Additionally, the ESP32 implements safety mechanisms including a software watchdog timer and emergency stop handling, ensuring that the mobility subsystem operates reliably and independently of higher-level software failures.
+The ESP32 executes a real-time control loop that processes PWM commands, reads the wheel encoder feedback, and acquires data from an onboard inertial measurement unit (IMU). The ESP32 is not involved in system-level decision-making and executes motion commands
+received from the supervisory computing layer without local interpretation. These sensor inputs enable closed-loop velocity control and odometry estimation at the firmware level. This closed-loop operation is limited to low-level mobility control and operates independently of system-level radio processing and coordination logic. Additionally, the ESP32 implements safety mechanisms, including a software watchdog timer and emergency stop handling, ensuring that the mobility subsystem operates reliably and independently of higher-level software failures.
 
-\subsection{Compute Layer}
-The onboard computing platform is an NVIDIA Jetson module, which serves as the supervisory controller for the entire mobile unit. The Jetson communicates with the ESP32 via a wired serial interface (UART), through which it issues high-level motion commands (e.g., velocity setpoints, trajectory waypoints, turn commands) and receives telemetry data such as encoder counts, IMU readings, and battery status.
+\subsection{Computation Layer}
+The onboard computing platform is an NVIDIA Jetson module, which serves as the supervisory controller for the entire mobile unit. The Jetson communicates with the ESP32 via a wired serial interface (UART), through which it issues high-level motion commands (e.g., velocity setpoints, trajectory waypoints, turn commands) and receives telemetry data such as encoder counts, IMU readings, and battery status. The Jetson acts as the interface between system-level coordination and low-level hardware execution, translating received commands into motion- or radio-specific actions.
+
 
 The separation between the ESP32 and the Jetson reflects a deliberate decomposition of real-time motor control (handled by the microcontroller) and computationally intensive tasks such as SDR signal processing (handled by the Jetson). This two-tier approach ensures deterministic motor control while enabling flexible, software-defined behavior at the application level.
+This separation preserves deterministic real-time motor control while allowing computationally intensive and algorithm-dependent processing to be implemented at the supervisory level.
 
 \subsection{Radio Layer}
 Each mobile unit carries a USRP software-defined radio connected to the Jetson via USB~3.0. The Jetson controls the USRP through the UHD (USRP Hardware Driver) framework, which provides programmatic access to transmission parameters, including carrier frequency, sampling rate, gain, and bandwidth. An omnidirectional antenna is mounted on the chassis to enable signal transmission.
 
-In the current system configuration, the mobile units operate exclusively as transmitters. The Jetson hosts the transmit (TX) signal processing pipeline responsible for waveform generation and USRP control, while reception is handled by separate stationary receiver nodes (described in Section~\ref{sec:system_architecture}).
+
+In the current system configuration, the mobile units operate exclusively as transmitters (TX). Signal reception is handled by dedicated stationary receiver nodes, which simplifies
+the mobile unit hardware and enables centralized signal processing. The Jetson hosts the transmit (TX) signal processing pipeline responsible for waveform generation and USRP control, while reception is handled by separate stationary receiver nodes (described in Section~\ref{sec:system_architecture}).
+
+The SignalTrack platform is organized as a centralized, message-driven experimental system that coordinates multiple mobile transmitter nodes and stationary receiver nodes under the supervision of a central controller. The overall system-level architecture is illustrated in Fig.~\ref{fig:system_arch}, which shows the logical interconnection between the mobile units, the stationary receivers, and the central controller over a shared network infrastructure.
 
 
 \section{System Architecture}
+
 \label{sec:system_architecture}
+\begin{figure}[htb] 
+\centering 
+\includegraphics[width=1\linewidth]{message_UML_2.png} 
 
-The SignalTrack platform comprises three categories of nodes: four identical mobile transmitter units, two stationary receiver nodes, and a centralized system controller. All nodes are interconnected through a shared local area network. The overall system architecture is illustrated in Fig.~\ref{fig:system_arch}.
+\caption{Example of the message exchange between components}
+\label{fig: UML}
+\end{figure} 
 
-\begin{figure}[t]
-\centering
-\begin{tikzpicture}[
-    node distance=0.8cm and 0.6cm,
-    unit/.style={rectangle, draw, thick, minimum width=1.4cm, minimum height=1.6cm, align=center, font=\scriptsize, rounded corners=2pt},
-    rxnode/.style={rectangle, draw, thick, fill=cyan!12, minimum width=1.4cm, minimum height=1.1cm, align=center, font=\scriptsize, rounded corners=2pt},
-    ctrl/.style={rectangle, draw, very thick, fill=gray!15, minimum width=7.5cm, minimum height=1.1cm, align=center, font=\footnotesize, rounded corners=3pt},
-    arr/.style={-{Stealth[length=2mm]}, thick, dashed},
-    darr/.style={{Stealth[length=2mm]}-{Stealth[length=2mm]}, thick, dashed},
-    rf/.style={-{Stealth[length=2mm]}, thick, red!70!black, decorate, decoration={snake, amplitude=0.8mm, segment length=3mm}},
-    iq/.style={-{Stealth[length=2mm]}, thick, blue!70!black},
-]
-% Central controller
-\node[ctrl] (cc) {Central PC (Controller)};
+The SignalTrack platform is organized as a centralized, message-driven experimental system that coordinates multiple mobile transmitter nodes and stationary receiver nodes under the supervision of a central controller. In this architecture, message exchange constitutes the primary interface between the system-level controller and all participating nodes.
+The overall system-level architecture is illustrated in Fig.~\ref{fig: UML}, which shows the logical interconnection between the mobile units, the stationary receivers, and the central controller over a shared network infrastructure. The diagram emphasizes the logical flow of messages and control signals rather than the physical connectivity between the system components.
 
-% TX Units - evenly spaced row below controller
-\node[unit, below=1.6cm of cc, xshift=-3.0cm] (u1) {TX 1\\\scriptsize Jetson\\\scriptsize ESP32\\\scriptsize USRP};
-\node[unit, below=1.6cm of cc, xshift=-1.0cm] (u2) {TX 2\\\scriptsize Jetson\\\scriptsize ESP32\\\scriptsize USRP};
-\node[unit, below=1.6cm of cc, xshift=1.0cm] (u3) {TX 3\\\scriptsize Jetson\\\scriptsize ESP32\\\scriptsize USRP};
-\node[unit, below=1.6cm of cc, xshift=3.0cm] (u4) {TX 4\\\scriptsize Jetson\\\scriptsize ESP32\\\scriptsize USRP};
+The architecture explicitly separates three functional responsibilities: local hardware control at the node level, centralized coordination and decision making, and algorithm-specific signal processing logic. This separation is enforced through message-based interfaces, allowing transmission strategies and control logic to be modified without changes to the underlying mobility or communication subsystems.
 
-% RX Nodes
-\node[rxnode, below=4.0cm of cc, xshift=-1.5cm] (rx1) {RX 1\\\scriptsize  USRP};
-\node[rxnode, below=4.0cm of cc, xshift=1.5cm] (rx2) {RX 2\\\scriptsize  USRP};
-
-% Control links (Central PC -> TX units)
-\draw[arr] (cc) -- node[left, font=\tiny]{MQTT} (u1);
-\draw[arr] (cc) -- (u2);
-\draw[arr] (cc) -- (u3);
-\draw[arr] (cc) -- node[right, font=\tiny]{MQTT} (u4);
-
-% IQ links (RX -> Central PC)
-\draw[iq] (rx1) -- node[left, font=\tiny, near start]{IQ data} (cc);
-\draw[iq] (rx2) -- node[right, font=\tiny, near start]{IQ data} (cc);
-
-% RF links (TX -> RX)
-\draw[rf] (u1.south) -- (rx1.north west);
-\draw[rf] (u2.south) -- (rx1.north);
-\draw[rf] (u3.south) -- (rx2.north);
-\draw[rf] (u4.south) -- (rx2.north east);
-
-\end{tikzpicture}
-\caption{System-level architecture of the SignalTrack platform. Four mobile transmitter units are controlled by a central PC via MQTT. Two stationary receiver nodes capture the transmitted RF signals and forward IQ~samples to the central PC for processing.}
-\label{fig:system_arch}
-\end{figure}
 
 \subsection{Centralized Controller}
-The system controller runs on a dedicated central PC connected to the same network as all other nodes. It fulfills two primary functions: (1)~coordinate the mobile transmitter units, including issuing motion commands and setting transmission parameters, and (2)~collect and process IQ~samples received from stationary receiver nodes.
 
-Communication between the central PC and the mobile units follows a subscribe model published based on the MQTT protocol. Each mobile unit, upon startup, registers its hardware capabilities (e.g., supported frequency bands, available TX channels) with the controller and reports readiness after successful initialization of the SDR hardware and onboard processing pipelines. During runtime, the controller publishes experiment parameters such as carrier frequency, waveform type, transmission schedule, per-unit phase or amplitude offsets, and mobility commands to the individual transmitter units.
+The centralized controller operates as the system master and is responsible for global synchronization, experiment orchestration, and closed-loop control. It runs on a dedicated central PC connected to the same local network as all TX and RX nodes, as depicted in Fig. 3. The controller maintains a global view of the system state and coordinates the interaction between distributed nodes at the control and experimental management level. All coordination and control actions are mediated by the centralized controller, and no direct peer-to-peer communication between mobile or receiver nodes is required. 
 
-The central PC also receives streamed IQ~samples from the two stationary receiver Jetsons over the network. These samples are used for centralized signal processing tasks, including beamforming weight computation, channel estimation, and performance evaluation.
+System startup follows a structured two-stage initialization procedure. First, each TX and RX node registers with the controller, allowing it to verify the expected system topology. This registration phase establishes the system topology exclusively through message exchange, without assumptions about static node configuration. After registration, nodes independently initialize their local hardware resources, including SDR front-ends and onboard processing pipelines, and report readiness to the controller. Only after all expected nodes have entered the ready state does the controller initiate the experiment by broadcasting a global start command. The global start command acts as a synchronization barrier, ensuring that all nodes
+begin transmission or reception only after system-wide readiness is confirmed. This mechanism ensures that no transmission or reception begins before the system is fully synchronized. 
+
+Once the experiment is running, the controller receives measurement data from the RX nodes, executes centralized processing and control logic, and issues updated transmission parameters to the TX nodes. This design enables coordinated transmission strategies while avoiding direct peer-to-peer dependencies between nodes.
 
 \subsection{Stationary Receiver Nodes}
-In addition to the four mobile transmitters, the system includes two stationary receiver nodes. Each receiver consists of an computer platform with a USRP front-end operating in receive mode. The receiver Jetsons capture IQ~samples from the over-the-air signals transmitted by the mobile units and forward these samples to the central PC for centralized processing.
 
-The stationary placement of the receivers provides fixed and known reference positions, which simplifies calibration and beamforming weight calculation. The use of two spatially separated receivers also enables diversity reception and spatial analysis of the transmitted beam pattern.
+In addition to the mobile transmitter units, the system includes two stationary receiver nodes. Each receiver consists of a computer platform equipped with a USRP SDR front-end operating in receive mode. The receiver nodes capture baseband IQ samples of the over-the-air signals transmitted by the mobile units and forward these samples to the central controller for centralized processing. \\
+The fixed and known spatial placement of the receivers provides stable reference positions, facilitating calibration procedures and enabling reproducible spatial analysis. The use of two spatially separated receivers enables spatial diversity and supports the analysis of received signal characteristics across different observation points.
 
-\subsection{Distributed Beamforming Configuration}
-In the initial operational mode, the system is configured for distributed transmit beamforming. The four USRP front-ends, each mounted on a separate mobile unit, operate as independent transmitters whose signals are intended to combine coherently at the receiver locations. The central PC applies a phase adjustment algorithm that iteratively modifies the per-unit transmission phase offsets based on the received signal quality reported by the stationary receivers.
+
+\subsection{Distributed Transmission Control Architecture}
+
+In the initial operational configuration, the system is designed to support distributed transmission scenarios involving multiple mobile transmitter units. Each USRP front-end is mounted on a separate mobile unit and operates as an independent transmitter under centralized coordination.
+
+The centralized controller collects measurement data from the stationary receivers and can apply centralized processing to derive transmission parameter updates for individual transmitters. 
+This architecture enables experimental investigation of phase-coherent transmission strategies, such as distributed beamforming. While transmission is physically distributed across mobile units, all coordination
+and parameter adaptation are performed centrally.
+
+The current implementation focuses on establishing the communication,
+synchronization, and control infrastructure, while advanced transmission strategies,
+such as distributed beamforming, are considered as part of ongoing and future work.
+
+
 
 \subsection{Scalability and Extensibility}
-The modular design of both the mobile units and the communication infrastructure allows the system to scale beyond four transmitters or two receivers without architectural changes. Additional nodes can join the network by registering with the centralized controller. The MQTT-based communication model naturally supports dynamic addition and removal of nodes, making the platform suitable for experiments requiring variable array sizes or heterogeneous node configurations.
-
-
-\section{Polaczenie systemu + samochodzik}
-The integration of the central control system with the mobile units is realized through the reception and interpretation of control messages. The onboard computer acts as a gateway, directing specific commands to the appropriate subsystems based on the message content. This architecture ensures that instructions related to physical movement are routed to the embedded motion controller, while parameters concerning signal generation are directed to the software-defined radio frontend.
-
-Message-based communication constitutes the primary system interface. The low-level mobility execution is handled by an embedded microcontroller (e.g., ESP32), which operates independently of the radio subsystem. This layer receives interpreted motion commands from the main message stream, ensuring that navigation tasks are executed reliably without burdening the high-level signal processing unit.
-
-The core integration logic is located on the NVIDIA Jetson platform, which functions as the local computational node for both the transmitter (TX) and receiver (RX) units. This platform hosts the software modules that interface with the USRP hardware via the UHD driver, translating high-level system commands into specific waveform configurations and transmission timings.
-
-Although motion control and radio operations are handled by distinct hardware components, the message handling architecture unifies them into a coherent system. The communication framework ensures that a single control stream can efficiently synchronize vehicle positioning with radio transmission, maintaining logical separation of duties while preserving system-wide consistency.
-
-Connectivity with the controller of the central system is achieved through a publish–subscribe model based on the MQTT protocol. Upon startup, each mobile unit registers its capabilities and reports readiness only after successful initialization of both the SDR hardware and internal processing pipelines. During operation, the central controller issues experiment parameters, while the nodes return status updates or collected metrics.
-
-The flexible nature of this message-based architecture supports various experimental scenarios, which may require different data exchange schemes. Depending on the specific algorithm loaded on the central controller, the message flow can be adapted—ranging from simple beacon transmission to complex, feedback driven configurations without requiring changes to the underlying vehicle firmware.
-
-In summary, the architecture relies on a versatile message exchange protocol that enables a flexible binding between the central system logic and the distributed mobile hardware. This approach facilitates scalable coordination by abstracting the complexity of simultaneous motion and radio control into a unified communication interface.
+The modular design of both the mobile units and the communication infrastructure is designed to allow the system to scale beyond four transmitters or two receivers without architectural changes. Additional nodes can join the network by registering with the centralized controller. The MQTT-based communication model enables dynamic addition and removal of nodes, supporting experiments with variable system scale and heterogeneous configurations.
 
 
 
-\begin{figure}[h]
+\section{Integration of the Central System with Mobile Units}
+\label{sec:integration}
+
+
+
+
+The integration of the central control system with the mobile units is realized through the reception and interpretation of control messages.No direct coupling between the system logic and the mobile hardware is assumed beyond
+this message-based interface. The hardware-level organization of this integration, including the network
+infrastructure and the internal structure of the mobile unit, is illustrated
+in Fig.~\ref{fig:system_architecture}.
+The onboard computer acts as a gateway, directing specific commands to the appropriate subsystems based on the message content. This architecture ensures that instructions related to physical movement are routed to the embedded motion controller, while parameters concerning signal generation are directed to the software-defined radio frontend.
+
+\begin{figure}[htb!]
     \centering
-    \includegraphics[width=\columnwidth]{central_system.png}
+    \includegraphics[width=\columnwidth]{AI_gen.jpg}
     \caption{System architecture of the SignalTrack platform integrating centralized SDR coordination with autonomous mobile units.}
     \label{fig:system_architecture}
 \end{figure}
 
 
 
+Within each mobile unit, message-based communication constitutes the primary interface between system-level control and local hardware execution. The low-level mobility execution is handled by an embedded microcontroller (e.g., ESP32), which operates independently of the radio subsystem. This layer receives interpreted motion commands from the main message stream, ensuring that navigation tasks are executed reliably without burdening the high-level signal processing unit. The microcontroller executes only validated motion commands and does not participate in algorithmic decision-making or system-level coordination.
+
+The NVIDIA Jetson platform serves as the local execution point for system-level commands within each mobile unit. This platform hosts the software modules that interface with the USRP hardware via the UHD driver, translating high-level system commands into specific waveform configurations and transmission timings.
+
+Although motion control and radio operations are handled by distinct hardware components, the message handling architecture unifies them into a coherent system. This design allows both subsystems to be synchronized using a unified control flow, while preserving their independent execution paths. The communication framework ensures that a single control stream can efficiently synchronize vehicle positioning with radio transmission, maintaining a logical separation of duties while preserving system-wide consistency.
+
+Connectivity with the controller of the central system is achieved through a publish–subscribe model based on the MQTT protocol. This registration process establishes a communication contract between the mobile unit and the central controller, defining its role and available capabilities. Upon startup, each mobile unit registers its capabilities and reports readiness only after the successful initialization of both the SDR hardware and internal processing pipelines. During operation, the central controller issues experimental parameters, while the nodes return status updates or collected metrics.
+
+
+
+The message-based architecture supports multiple experimental scenarios by allowing
+the message flow to be adapted to the currently executed algorithm, without requiring
+changes to the underlying mobile unit firmware.
+
+
+The flexible nature of this message-based architecture supports various experimental scenarios, which may require different data exchange schemes. Depending on the specific algorithm loaded on the central controller, the message flow can be adapted-ranging from simple beacon transmission to complex, feedback driven configurations without requiring changes to the underlying vehicle firmware.
+
+
+
+
+In summary, the architecture relies on a versatile message exchange protocol that enables a flexible binding between the central system logic and the distributed mobile hardware. This approach facilitates scalable coordination by abstracting the complexity of simultaneous motion and radio control into a unified communication interface. 
+
+
+
 \section{Conclusion}
-The conclusion goes here.
-% conference papers do not normally have an appendix
+\label{sec:conclusions}
 
+This paper presents SignalTrack, a modular experimental platform designed for the study of distributed and mobile wireless systems under centralized coordination. The platform integrates mobile SDR-enabled transmitter units, stationary receiver nodes, and a central controller responsible for synchronization, data aggregation, and algorithm execution. By decoupling radio operation, mobility control, and experiment logic, the proposed architecture enables flexible reconfiguration and supports a wide range of experimental scenarios without requiring structural modifications.
 
-% use section* for acknowledgment
+The presented architecture emphasizes scalable coordination of distributed mobile SDR units through message-based system integration. The separation between real-time hardware control and high-level signal processing simplifies system integration and facilitates reproducible experimentation in distributed transmission and sensing scenarios. The presented design focuses on architectural principles and system organization rather than on specific signal processing outcomes.
+
+Future work will focus on the systematic evaluation of the platform under different experimental configurations. This includes the integration and assessment of various control and signal processing algorithms, exploration of coordinated multi-transmitter transmission strategies, and investigation of sensing-driven adaptation mechanisms. Additional efforts will consider extending the system to larger node counts, incorporating mobility-aware coordination, and analyzing timing, synchronization, and scalability aspects in more complex deployments.
 \section*{Acknowledgment}
+This work was supported by the grant for student development: "SignalTrack” – studencki system lokalizacji pojazdu mobilnego z wykorzystaniem MQTT i sygnałów RF.  
 
-The authors would like to thank all the members of Science Club Spektrum involved in the work on the "Phantom6G" project.
 
 
 % trigger a \newpage just before the given reference
@@ -589,3 +612,78 @@ The authors would like to thank all the members of Science Club Spektrum involve
 \end{document}
 
 
+% @startuml
+% skinparam shadowing false
+% skinparam dpi 180
+
+% skinparam defaultFontName Helvetica
+% skinparam defaultFontSize 16
+
+% skinparam sequence {
+%     ArrowColor Black
+%     ArrowThickness 1.5
+
+%     LifeLineBorderColor Black
+%     LifeLineBorderThickness 1.5
+%     LifeLineBackgroundColor #F5F5F5
+
+%     ParticipantBorderColor Black
+%     ParticipantBorderThickness 2
+%     ParticipantBackgroundColor #EEEEEE
+
+%     BoxBorderColor Black
+%     BoxBorderThickness 1.8
+
+%     GroupBorderThickness 1.8
+%     GroupFontSize 16
+%     GroupFontStyle bold
+% }
+
+% participant "**Transmitter**\n(TX Node)" as TX
+% participant "**Receiver**\n(RX Node)" as RX
+% participant "**Central Controller**\n(MASTER)" as SYS
+% participant "**Control Algorithm**\n(pluggable)" as ALG
+
+% group #DDDDDD **System Initialization**
+%     TX -> SYS : Registration
+%     RX -> SYS : Registration
+%     SYS -> SYS : Topology verification
+% end
+
+% group #CCE5FF **Synchronization Phase**
+%     TX -> SYS : Ready signal
+%     RX -> SYS : Ready signal
+%     SYS -> SYS : Global readiness check
+
+%     alt **All nodes synchronized**
+%         SYS -> ALG : Initialize algorithm
+%         SYS -> TX : Start transmission
+%         SYS -> RX : Start reception
+%     end
+% end
+
+% group #DFF0D8 **Runtime Operation – Closed-loop Control**
+%     loop **Experiment iteration / time window**
+
+%         SYS -> TX : Transmission parameter update
+%         TX -> TX : Signal generation\nand transmission
+
+%         RX -> RX : Signal acquisition
+%         RX -> SYS : Measurement data
+
+%         activate ALG
+%         SYS -> ALG : Measurement processing
+%         note right of ALG
+%           **Generic control algorithm**
+%           • implementation-independent
+%           • DSP / beamforming / ISAC / ML
+%           • centralized decision logic
+%         end note
+%         ALG --> SYS : Control decisions\nand performance metrics
+%         deactivate ALG
+
+%         SYS -> SYS : State update and logging
+
+%     end
+% end
+% @enduml
