@@ -458,14 +458,14 @@ The onboard computing platform is an NVIDIA Jetson module, which serves as the s
 The separation between the ESP32 and the Jetson reflects a deliberate decomposition of real-time motor control (handled by the microcontroller) and computationally intensive tasks such as SDR signal processing (handled by the Jetson). This two-tier approach ensures deterministic motor control while enabling flexible, software-defined behavior at the application level.
 This separation preserves deterministic real-time motor control while allowing computationally intensive and algorithm-dependent processing to be implemented at the supervisory level.
 
-\subsection{Radio Layer}
-Each mobile unit carries a USRP software-defined radio connected to the Jetson via USB~3.0. The Jetson controls the USRP through the UHD (USRP Hardware Driver) framework, which provides programmatic access to transmission parameters, including carrier frequency, sampling rate, gain, and bandwidth. An omnidirectional antenna is mounted on the chassis to enable signal transmission.
+% \subsection{Radio Layer}
+% Each mobile unit carries a USRP software-defined radio connected to the Jetson via USB~3.0. The Jetson controls the USRP through the UHD (USRP Hardware Driver) framework, which provides programmatic access to transmission parameters, including carrier frequency, sampling rate, gain, and bandwidth. An omnidirectional antenna is mounted on the chassis to enable signal transmission.
 
 
-In the current system configuration, the mobile units operate exclusively as transmitters (TX). Signal reception is handled by dedicated stationary receiver nodes, which simplifies
-the mobile unit hardware and enables centralized signal processing. The Jetson hosts the transmit (TX) signal processing pipeline responsible for waveform generation and USRP control, while reception is handled by separate stationary receiver nodes (described in Section~\ref{sec:system_architecture}).
+% In the current system configuration, the mobile units operate exclusively as transmitters (TX). Signal reception is handled by dedicated stationary receiver nodes, which simplifies
+% the mobile unit hardware and enables centralized signal processing. The Jetson hosts the transmit (TX) signal processing pipeline responsible for waveform generation and USRP control, while reception is handled by separate stationary receiver nodes (described in Section~\ref{sec:system_architecture}).
 
-The SignalTrack platform is organized as a centralized, message-driven experimental system that coordinates multiple mobile transmitter nodes and stationary receiver nodes under the supervision of a central controller. The overall system-level architecture is illustrated in Fig.~\ref{fig:system_arch}, which shows the logical interconnection between the mobile units, the stationary receivers, and the central controller over a shared network infrastructure.
+% The SignalTrack platform is organized as a centralized, message-driven experimental system that coordinates multiple mobile transmitter nodes and stationary receiver nodes under the supervision of a central controller. The overall system-level architecture is illustrated in Fig.~\ref{fig:system_arch}, which shows the logical interconnection between the mobile units, the stationary receivers, and the central controller over a shared network infrastructure.
 
 
 \section{System Architecture}
@@ -523,20 +523,43 @@ The modular design of both the mobile units and the communication infrastructure
 \label{sec:integration}
 
 
+The integration of the central control system with the mobile units is realized through the reception and interpretation of control messages exchanged over a message-based communication interface.No direct coupling between the system logic and the mobile hardware is assumed beyond this interface. The integration mechanism provides a clear boundary between centralized coordination, described in Section~III, and the hardware architecture of individual mobile units presented in Section~II.
+
+The logical organization of the integrated system is shown in Fig~\ref{fig:system_architecture}. The architecture follows a centralized coordination model, in which all mobile and stationary nodes communicate with the central controller through a shared network infrastructure. This abstraction enables uniform control of distributed radio and mobility resources while avoiding direct peer-to-peer dependencies between nodes. 
 
 
-The integration of the central control system with the mobile units is realized through the reception and interpretation of control messages.No direct coupling between the system logic and the mobile hardware is assumed beyond
-this message-based interface. The hardware-level organization of this integration, including the network
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=\columnwidth]{Connection_schem.png}
+    \caption{Logical system-level architecture of the SignalTrack platform. The central controller coordinates multiple transmitter and receiver nodes via a shared network infrastructure, enabling scalable and algorithm-agnostic system operation.}
+    \label{fig:central_system}
+\end{figure}
+
+\subsection{Message-Based Integration of Mobile Units}
+
+Within each mobile unit, message-based communication constitutes the primary interface between system control and local hardware execution. The onboard computing platform acts as a gateway that interprets incoming control messages and routes them to the appropriate subsystems. Commands related to physical motion are forwarded to the embedded mobility controller, while parameters associated with radio operation are directed to the software-defined radio processing chain.
+
+Low-level mobility execution is handled by an embedded microcontroller (e.g., ESP32), which operates independently of the radio subsystem and executes only validated motion commands. The microcontroller does not participate in algorithmic decision-making or system-level coordination, ensuring deterministic motion control regardless of the complexity of the algorithms executed at the central controller.
+
+The NVIDIA Jetson platform serves as the local execution point for system-level commands within each mobile unit. It hosts the software modules responsible for interfacing with the SDR hardware and translating high-level system commands into specific waveform configurations and transmission schedules. This separation preserves real-time control of mobility while enabling flexible, software-defined radio operation.
+
+\subsection{Physical Deployment and Network Connectivity}
+
+A representative physical realization of the integrated system is illustrated in Fig.~\ref{fig:physical_architecture}. The central controller is implemented on a dedicated PC connected to the mobile units and stationary receiver nodes through a shared IP network. Connectivity is provided via Ethernet or Wi-Fi, depending on deployment constraints, while the message exchange mechanism remains unchanged.
+
+\begin{figure}[htb!]
+    \centering
+    \includegraphics[width=\columnwidth]{AI_przestrzenne.jpeg}
+    \caption{Representative physical deployment of the SignalTrack platform, including a central controller, network infrastructure, mobile transmitter units, and stationary receiver nodes. Control commands and measurement data are exchanged over a shared network.}
+    \label{fig:physical_architecture}
+\end{figure}
+
+organization of this integration, including the network
 infrastructure and the internal structure of the mobile unit, is illustrated
 in Fig.~\ref{fig:system_architecture}.
 The onboard computer acts as a gateway, directing specific commands to the appropriate subsystems based on the message content. This architecture ensures that instructions related to physical movement are routed to the embedded motion controller, while parameters concerning signal generation are directed to the software-defined radio frontend.
 
-\begin{figure}[htb!]
-    \centering
-    \includegraphics[width=\columnwidth]{AI_gen.jpg}
-    \caption{System architecture of the SignalTrack platform integrating centralized SDR coordination with autonomous mobile units.}
-    \label{fig:system_architecture}
-\end{figure}
+
 
 
 
